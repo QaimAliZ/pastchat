@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Trash2, MessageSquarePlus, Send } from "lucide-react";
 import { characters } from "../data/characters";
+import { v4 as uuidv4 } from "uuid"; // ✅ Generates unique user IDs
 
 interface ChatMessage {
   sender: "user" | "character";
@@ -24,14 +25,31 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("savedChats");
-    if (saved) setChats(JSON.parse(saved));
-  }, []);
+  // ✅ Each visitor gets a unique userId (persistent in browser)
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-    localStorage.setItem("savedChats", JSON.stringify(chats));
-  }, [chats]);
+    let storedId = localStorage.getItem("userId");
+    if (!storedId) {
+      storedId = uuidv4();
+      localStorage.setItem("userId", storedId);
+    }
+    setUserId(storedId);
+  }, []);
+
+  // ✅ Load chats specific to this user
+  useEffect(() => {
+    if (!userId) return;
+    const saved = localStorage.getItem(`savedChats_${userId}`);
+    if (saved) setChats(JSON.parse(saved));
+  }, [userId]);
+
+  // ✅ Save chats for this specific user
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem(`savedChats_${userId}`, JSON.stringify(chats));
+    }
+  }, [chats, userId]);
 
   useEffect(() => {
     if (chatEndRef.current)
@@ -47,7 +65,9 @@ export default function Page() {
       messages: [...selectedChat.messages, newMessage],
     };
 
-    setChats((prev) => prev.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
+    setChats((prev) =>
+      prev.map((c) => (c.id === selectedChat.id ? updatedChat : c))
+    );
     setSelectedChat(updatedChat);
     setInput("");
     setLoading(true);
@@ -169,7 +189,6 @@ export default function Page() {
       <main className="flex-1 flex flex-col relative bg-[#0f0f0f]">
         {selectedChat ? (
           <>
-            {/* Header */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-800 bg-[#111]/60 backdrop-blur-md shadow-md">
               <img
                 src={selectedChat.character.image}
@@ -181,12 +200,13 @@ export default function Page() {
               </h2>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {selectedChat.messages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} transition-all duration-300`}
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
+                  } transition-all duration-300`}
                 >
                   <div
                     className={`max-w-xs sm:max-w-md p-3 rounded-2xl text-sm break-words shadow-md transition-all duration-300 transform animate-fadeIn ${
@@ -200,7 +220,6 @@ export default function Page() {
                 </div>
               ))}
 
-              {/* Typing animation */}
               {loading && (
                 <div className="flex items-center gap-2 text-gray-400 text-sm pl-1 animate-pulse">
                   <span className="flex gap-1">
@@ -208,14 +227,12 @@ export default function Page() {
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
                     <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
                   </span>
-                  
                 </div>
               )}
 
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input */}
             <div className="p-4 border-t border-gray-800 bg-[#111]/70 backdrop-blur-md flex gap-3 items-center shadow-inner rounded-t-xl">
               <input
                 type="text"
@@ -239,7 +256,6 @@ export default function Page() {
           </div>
         )}
 
-        {/* Character Selection Modal */}
         {showCharacterSelection && (
           <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-start z-50 p-6 pt-16 overflow-y-auto">
             <input
