@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preinstall": "npm config set legacy-peer-deps true",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@auth/core": "^0.41.1",
-    "@auth/prisma-adapter": "^2.11.1",
+    "@auth/core": "0.34.2",
+    "@auth/prisma-adapter": "2.11.1",
     "lucide-react": "^0.547.0",
     "next": "16.0.0",
-    "next-auth": "^4.24.12",
+    "next-auth": "4.24.12",
     "nodemailer": "^7.0.10",
     "openai": "^6.6.0",
     "react": "19.2.0",
@@ -29,7 +30,7 @@
     "eslint-config-next": "16.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.16",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
   "main": "index.js",
