@@ -1,20 +1,24 @@
 "use client";
 
+
 import React, { useState, useEffect, useRef } from "react";
 import { Trash2, MessageSquarePlus, Send } from "lucide-react";
 import { characters } from "../data/characters";
 import { v4 as uuidv4 } from "uuid"; // ✅ Generates unique user IDs
+
 
 interface ChatMessage {
   sender: "user" | "character";
   content: string;
 }
 
+
 interface Chat {
   id: string;
   character: typeof characters[number];
   messages: ChatMessage[];
 }
+
 
 export default function Page() {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -25,8 +29,10 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
+
   // ✅ Each visitor gets a unique userId (persistent in browser)
   const [userId, setUserId] = useState<string>("");
+
 
   useEffect(() => {
     let storedId = localStorage.getItem("userId");
@@ -37,12 +43,14 @@ export default function Page() {
     setUserId(storedId);
   }, []);
 
+
   // ✅ Load chats specific to this user
   useEffect(() => {
     if (!userId) return;
     const saved = localStorage.getItem(`savedChats_${userId}`);
     if (saved) setChats(JSON.parse(saved));
   }, [userId]);
+
 
   // ✅ Save chats for this specific user
   useEffect(() => {
@@ -51,13 +59,16 @@ export default function Page() {
     }
   }, [chats, userId]);
 
+
   useEffect(() => {
     if (chatEndRef.current)
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [selectedChat?.messages]);
 
+
   const handleSend = async () => {
     if (!input.trim() || !selectedChat) return;
+
 
     const newMessage: ChatMessage = { sender: "user", content: input };
     const updatedChat = {
@@ -65,12 +76,14 @@ export default function Page() {
       messages: [...selectedChat.messages, newMessage],
     };
 
+
     setChats((prev) =>
       prev.map((c) => (c.id === selectedChat.id ? updatedChat : c))
     );
     setSelectedChat(updatedChat);
     setInput("");
     setLoading(true);
+
 
     try {
       const response = await fetch("/api/chat", {
@@ -98,6 +111,7 @@ export default function Page() {
     }
   };
 
+
   const startChatWithCharacter = (character: typeof characters[number]) => {
     const newChat: Chat = { id: Date.now().toString(), character, messages: [] };
     setChats((prev) => [...prev, newChat]);
@@ -106,18 +120,22 @@ export default function Page() {
     setSearch("");
   };
 
+
   const handleDelete = (id: string) => {
     setChats((prev) => prev.filter((c) => c.id !== id));
     if (selectedChat?.id === id) setSelectedChat(null);
   };
 
+
   const uniqueCharacters = characters.filter(
     (char, index, self) => index === self.findIndex((c) => c.id === char.id)
   );
 
+
   const filteredCharacters = uniqueCharacters
     .filter((char) => char.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
+
 
   const groupedCharacters: Record<string, typeof characters> = {};
   filteredCharacters.forEach((char) => {
@@ -126,7 +144,9 @@ export default function Page() {
     groupedCharacters[firstLetter].push(char);
   });
 
+
   const letters = Object.keys(groupedCharacters).sort();
+
 
   return (
     <div className="flex h-screen font-sans text-gray-100 bg-[#0a0a0a] transition-colors duration-300 dark:bg-[#0a0a0a]">
@@ -185,6 +205,7 @@ export default function Page() {
         </div>
       </aside>
 
+
       {/* Chat Area */}
       <main className="flex-1 flex flex-col relative bg-[#0f0f0f]">
         {selectedChat ? (
@@ -199,6 +220,7 @@ export default function Page() {
                 {selectedChat.character.name}
               </h2>
             </div>
+
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {selectedChat.messages.map((msg, i) => (
@@ -220,6 +242,7 @@ export default function Page() {
                 </div>
               ))}
 
+
               {loading && (
                 <div className="flex items-center gap-2 text-gray-400 text-sm pl-1 animate-pulse">
                   <span className="flex gap-1">
@@ -230,8 +253,10 @@ export default function Page() {
                 </div>
               )}
 
+
               <div ref={chatEndRef} />
             </div>
+
 
             <div className="p-4 border-t border-gray-800 bg-[#111]/70 backdrop-blur-md flex gap-3 items-center shadow-inner rounded-t-xl">
               <input
@@ -255,6 +280,7 @@ export default function Page() {
             Select or start a chat to begin messaging.
           </div>
         )}
+
 
         {showCharacterSelection && (
           <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-start z-50 p-6 pt-16 overflow-y-auto">
