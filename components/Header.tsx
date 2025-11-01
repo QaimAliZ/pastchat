@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import { signOut } from "@/lib/auth-client"; // <-- client-side only
+import { signOut } from "@/lib/auth-client";
 
 export default function Header() {
   const router = useRouter();
   const [userName, setUserName] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
         const first = user.user_metadata?.first_name ?? "";
@@ -25,26 +25,52 @@ export default function Header() {
     fetchUser();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSignOut = () => {
     signOut();
     router.push("/login");
   };
 
   return (
-    <header className="flex items-center justify-between p-4 bg-gray-900 text-white">
-      <h1 className="text-xl font-bold cursor-pointer" onClick={() => router.push("/")}>
+    <header className="flex items-center justify-between p-4 bg-black text-white shadow-md">
+      <h1
+        className="text-xl font-bold cursor-pointer hover:text-indigo-400 transition-colors"
+        onClick={() => router.push("/")}
+      >
         PastChat
       </h1>
 
-      <div className="flex items-center gap-3">
-        {userName && <span className="text-gray-100 font-medium">{userName}</span>}
-        <button
-          onClick={handleSignOut}
-          className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white font-semibold"
-        >
-          Sign Out
-        </button>
-      </div>
+      {userName && (
+        <div className="relative" ref={dropdownRef}>
+          <span
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="cursor-pointer text-gray-100 font-medium hover:text-indigo-400 transition-colors px-3 py-2 rounded-lg bg-gray-900/50 backdrop-blur-sm"
+          >
+            {userName}
+          </span>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50">
+              <button
+                onClick={handleSignOut}
+                className="w-full text-left px-4 py-2 hover:bg-red-600 hover:text-white transition-colors rounded-lg"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
