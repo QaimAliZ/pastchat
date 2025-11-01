@@ -23,23 +23,22 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
+      const { data, error } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            data: { firstName, lastName },
+            // Redirect to production chat page after confirmation
+            emailRedirectTo: "https://pastchat.vercel.app/chat",
           },
-        },
-      });
+        }
+      );
 
       if (error) throw error;
 
-      // Save session (if returned) locally
-      if (data?.session) saveSession(data.session);
-
-      router.push("/login");
+      saveSession(data.session); // store session
+      router.push("/chat");
     } catch (err: any) {
       setError(err.message || "Registration failed");
     } finally {
@@ -65,6 +64,7 @@ export default function RegisterPage() {
         onChange={(e) => setLastName(e.target.value)}
         className="mb-4 p-3 rounded-xl bg-[#1a1a1a]/80 text-white border border-gray-700 w-80"
       />
+
       <input
         type="email"
         placeholder="Email"
