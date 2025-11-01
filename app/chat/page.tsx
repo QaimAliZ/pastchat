@@ -152,7 +152,7 @@ export default function ChatPage() {
       {/* 🔹 Fixed Header */}
       <Header />
 
-      <div className="flex flex-1 mt-16">
+      <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-72 bg-[#111]/80 backdrop-blur-md border-r border-gray-800 flex flex-col shadow-xl">
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
