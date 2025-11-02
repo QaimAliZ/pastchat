@@ -3,12 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import { signOut } from "@/lib/auth-client";
 
 export default function Header() {
   const router = useRouter();
   const [userName, setUserName] = useState<string | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [avatarColor, setAvatarColor] = useState<string>("#4b5563");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,38 +18,46 @@ export default function Header() {
       if (user) {
         const first = user.user_metadata?.first_name ?? "";
         const last = user.user_metadata?.last_name ?? "";
+        const color = user.user_metadata?.avatar_color ?? "#4b5563";
         setUserName(`${first} ${last}`.trim());
+        setAvatarColor(color);
       }
     };
 
     fetchUser();
   }, []);
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
-  };
-
   return (
-    <header className="flex items-center justify-between p-4 bg-black text-white shadow-md">
+    <header className="flex items-center justify-between p-4 bg-gradient-to-r from-[#050d3a] to-[#5b2eb5] text-white shadow-md">
       {/* Site Name */}
       <h1
         className="text-2xl font-bold cursor-pointer bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500 drop-shadow-lg"
         onClick={() => router.push("/")}
       >
-        PastChat
+        Kronos.ai
       </h1>
 
       {/* User Info */}
-      <div className="relative">
+      <div>
         {userName && (
           <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 text-white font-medium hover:text-indigo-400 transition-colors"
+            onClick={() => router.push("/profile")}
+            className="flex items-center gap-3 text-white font-medium hover:text-indigo-400 transition-colors"
           >
+            {/* Avatar Circle */}
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {userName.charAt(0).toUpperCase()}
+            </div>
+
+            {/* User Name */}
             <span className="text-lg">{userName}</span>
+
+            {/* Down Arrow Icon */}
             <svg
-              className={`w-4 h-4 transform transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -59,18 +66,6 @@ export default function Header() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-        )}
-
-        {/* Dropdown */}
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-40 bg-[#111] rounded-lg shadow-lg border border-gray-800 overflow-hidden z-50">
-            <button
-              onClick={handleSignOut}
-              className="w-full text-left px-4 py-2 text-gray-100 hover:bg-red-600 hover:text-white transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
         )}
       </div>
     </header>

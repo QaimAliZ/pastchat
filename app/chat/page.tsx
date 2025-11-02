@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useState, useEffect, useRef } from "react";
 import { Trash2, MessageSquarePlus, Send } from "lucide-react";
 import { characters } from "@/data/characters";
@@ -8,10 +9,12 @@ import Header from "@/components/Header";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 
+
 interface ChatMessage {
   sender: "user" | "character";
   content: string;
 }
+
 
 interface Chat {
   id: string;
@@ -19,8 +22,10 @@ interface Chat {
   messages: ChatMessage[];
 }
 
+
 export default function ChatPage() {
   const router = useRouter();
+
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
@@ -30,8 +35,10 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
+
   const [userId, setUserId] = useState<string>("");
   const [sessionChecked, setSessionChecked] = useState(false);
+
 
   // 🔐 Client-side session check
     useEffect(() => {
@@ -44,7 +51,8 @@ export default function ChatPage() {
         }
       };
       checkSession();
-    }, [router]); 
+    }, [router]);
+
 
   // ✅ Each visitor gets a unique userId
   useEffect(() => {
@@ -56,12 +64,14 @@ export default function ChatPage() {
     setUserId(storedId);
   }, []);
 
+
   // ✅ Load chats for this user
   useEffect(() => {
     if (!userId) return;
     const saved = localStorage.getItem(`savedChats_${userId}`);
     if (saved) setChats(JSON.parse(saved));
   }, [userId]);
+
 
   // ✅ Save chats for this user
   useEffect(() => {
@@ -70,13 +80,16 @@ export default function ChatPage() {
     }
   }, [chats, userId]);
 
+
   // Scroll to bottom when messages change
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [selectedChat?.messages]);
 
+
   const handleSend = async () => {
     if (!input.trim() || !selectedChat) return;
+
 
     const newMessage: ChatMessage = { sender: "user", content: input };
     const updatedChat = {
@@ -84,10 +97,12 @@ export default function ChatPage() {
       messages: [...selectedChat.messages, newMessage],
     };
 
+
     setChats((prev) => prev.map((c) => (c.id === selectedChat.id ? updatedChat : c)));
     setSelectedChat(updatedChat);
     setInput("");
     setLoading(true);
+
 
     try {
       const response = await fetch("/api/chat", {
@@ -115,6 +130,7 @@ export default function ChatPage() {
     }
   };
 
+
   const startChatWithCharacter = (character: typeof characters[number]) => {
     const newChat: Chat = { id: Date.now().toString(), character, messages: [] };
     setChats((prev) => [...prev, newChat]);
@@ -123,18 +139,22 @@ export default function ChatPage() {
     setSearch("");
   };
 
+
   const handleDelete = (id: string) => {
     setChats((prev) => prev.filter((c) => c.id !== id));
     if (selectedChat?.id === id) setSelectedChat(null);
   };
 
+
   const uniqueCharacters = characters.filter(
     (char, index, self) => index === self.findIndex((c) => c.id === char.id)
   );
 
+
   const filteredCharacters = uniqueCharacters
     .filter((char) => char.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
+
 
   const groupedCharacters: Record<string, typeof characters> = {};
   filteredCharacters.forEach((char: typeof characters[number]) => {
@@ -143,14 +163,18 @@ export default function ChatPage() {
     groupedCharacters[firstLetter].push(char);
   });
 
+
   const letters = Object.keys(groupedCharacters).sort();
 
+
   if (!sessionChecked) return null;
+
 
   return (
     <div className="flex flex-col h-screen font-sans text-gray-100 bg-[#0a0a0a]">
       {/* 🔹 Fixed Header */}
       <Header />
+
 
       <div className="flex flex-1">
         {/* Sidebar */}
@@ -159,10 +183,11 @@ export default function ChatPage() {
             <h2 className="text-lg font-semibold tracking-wide text-gray-200">Chats</h2>
             <button
               onClick={() => setShowCharacterSelection(true)}
-              className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition shadow-lg"
+              className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:scale-105 transition shadow-lg rounded-lg"
             >
-              <MessageSquarePlus className="w-5 h-5 text-gray-200" />
+              <MessageSquarePlus className="w-5 h-5 text-white" />
             </button>
+
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
             {chats.map((chat) => (
@@ -204,6 +229,7 @@ export default function ChatPage() {
           </div>
         </aside>
 
+
         {/* Chat Area */}
         <main className="flex-1 flex flex-col relative bg-[#0f0f0f]">
           {selectedChat ? (
@@ -218,6 +244,7 @@ export default function ChatPage() {
                 <h2 className="text-lg font-semibold text-gray-200">{selectedChat.character.name}</h2>
               </div>
 
+
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                 {selectedChat.messages.map((msg, i) => (
@@ -229,11 +256,12 @@ export default function ChatPage() {
                       className={`max-w-xs sm:max-w-md p-3 rounded-2xl text-sm break-words shadow-md transition-all duration-300 transform animate-fadeIn ${
                         msg.sender === "user"
                           ? "bg-gradient-to-r from-indigo-600/80 to-purple-700/80 text-white rounded-br-none shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:scale-[1.02]"
-                          : "bg-[#1a1a1a]/80 text-gray-100 rounded-bl-none shadow-[0_0_10px_rgba(255,255,255,0.05)] hover:scale-[1.01]"
+                          : "bg-gradient-to-r from-purple-800/80 to-blue-600/80 text-white rounded-bl-none shadow-[0_0_10px_rgba(139,92,246,0.3)] hover:scale-[1.01]"
                       }`}
                     >
                       {msg.content}
                     </div>
+
                   </div>
                 ))}
                 {loading && (
@@ -248,6 +276,7 @@ export default function ChatPage() {
                 <div ref={chatEndRef} />
               </div>
 
+
               {/* Input */}
               <div className="p-4 border-t border-gray-800 bg-[#111]/70 backdrop-blur-md flex gap-3 items-center shadow-inner rounded-t-xl">
                 <input
@@ -260,10 +289,11 @@ export default function ChatPage() {
                 />
                 <button
                   onClick={handleSend}
-                  className="flex items-center justify-center p-2 bg-transparent hover:scale-110 transition-transform hover:text-indigo-400 drop-shadow-[0_0_6px_rgba(99,102,241,0.8)]"
+                  className="flex items-center justify-center p-2 bg-transparent hover:scale-110 transition-transform hover:text-purple-500 drop-shadow-[0_0_6px_rgba(99,102,241,0.8)]"
                 >
-                  <Send className="w-6 h-6 text-gray-100" />
+                  <Send className="w-6 h-6 text-current" />
                 </button>
+
               </div>
             </>
           ) : (
@@ -271,6 +301,7 @@ export default function ChatPage() {
               Select or start a chat to begin messaging.
             </div>
           )}
+
 
           {/* Character Selection Modal */}
           {showCharacterSelection && (
