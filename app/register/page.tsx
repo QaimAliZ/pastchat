@@ -28,7 +28,7 @@ export default function RegisterPage() {
         password,
         options: {
           data: { firstName, lastName },
-          emailRedirectTo: "https://pastchat.vercel.app/chat",
+          emailRedirectTo: "https://aikronos.vercel.app/chat",
         },
       });
 
